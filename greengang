@@ -5,6 +5,93 @@ local Player = Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 local Humanoid = Character:WaitForChild("Humanoid")
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.IgnoreGuiInset = true
+ScreenGui.ScreenInsets = Enum.ScreenInsets.None
+ScreenGui.Name = "eternalasc"
+ScreenGui.Parent = game.Players.LocalPlayer.PlayerGui
+ScreenGui.ResetOnSpawn = false
+local ESPFOLDER = Instance.new("Folder")
+ESPFOLDER.Parent = ScreenGui
+local ESPGUI = Instance.new("BillboardGui")
+local PLAYERNAME = Instance.new("TextLabel")
+local DISPLAYNAME = Instance.new("TextLabel")
+local Health = Instance.new("Frame")
+local BOXUI = Instance.new("Frame")
+local UISTROKE2 = Instance.new("UIStroke")
+local UISTROKE3 = Instance.new("UIStroke")
+local UISTROKE4 = Instance.new("UIStroke")
+local UISTROKE5 = Instance.new("UIStroke")
+ESPGUI.Name = "ESPGUI"
+ESPGUI.Parent = game.Lighting
+ESPGUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ESPGUI.AlwaysOnTop = true
+ESPGUI.ResetOnSpawn = false
+ESPGUI.Size = UDim2.new(6, 50, 9, 50)
+PLAYERNAME.Name = "PLAYERNAME"
+PLAYERNAME.Parent = ESPGUI
+PLAYERNAME.AnchorPoint = Vector2.new(0.5, 0.5)
+PLAYERNAME.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+PLAYERNAME.BackgroundTransparency = 1.000
+PLAYERNAME.BorderColor3 = Color3.fromRGB(0, 0, 0)
+PLAYERNAME.BorderSizePixel = 0
+PLAYERNAME.Position = UDim2.new(0.5, 0, 0.16, -5)
+PLAYERNAME.Size = UDim2.new(0, 100, 0, 15)
+PLAYERNAME.Font = Enum.Font.FredokaOne
+PLAYERNAME.Text = ""
+PLAYERNAME.TextColor3 = Color3.fromRGB(226, 226, 226)
+PLAYERNAME.TextScaled = true
+PLAYERNAME.TextSize = 14.000
+PLAYERNAME.TextWrapped = true
+PLAYERNAME.Visible = false
+UISTROKE2.Parent = PLAYERNAME
+UISTROKE2.Color = Color3.new(0,0,0)
+UISTROKE2.Thickness = 1
+DISPLAYNAME.Name = "DISPLAYNAME"
+DISPLAYNAME.Parent = ESPGUI
+DISPLAYNAME.AnchorPoint = Vector2.new(0.5, 0.5)
+DISPLAYNAME.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+DISPLAYNAME.BackgroundTransparency = 1.000
+DISPLAYNAME.BorderColor3 = Color3.fromRGB(0, 0, 0)
+DISPLAYNAME.BorderSizePixel = 0
+DISPLAYNAME.Position = UDim2.new(0.5, 0, 0.16, -5)
+DISPLAYNAME.Size = UDim2.new(0, 100, 0, 15)
+DISPLAYNAME.Font = Enum.Font.FredokaOne
+DISPLAYNAME.Text = ""
+DISPLAYNAME.TextColor3 = Color3.fromRGB(226, 226, 226)
+DISPLAYNAME.TextScaled = true
+DISPLAYNAME.TextSize = 14.000
+DISPLAYNAME.TextWrapped = true
+DISPLAYNAME.Visible = false
+UISTROKE5.Parent = DISPLAYNAME
+UISTROKE5.Color = Color3.new(0,0,0)
+UISTROKE5.Thickness = 1
+Health.Name = "Health"
+Health.Parent = ESPGUI
+Health.AnchorPoint = Vector2.new(0, 1)
+Health.BackgroundColor3 = Color3.fromRGB(0, 199, 46)
+Health.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Health.BorderSizePixel = 0
+Health.Position = UDim2.new(0.76, 5,0.805, 0)
+Health.Size = UDim2.new(0.025, 4, 0.6, 3)
+Health.Visible = false
+Health.ZIndex = 3
+UISTROKE3.Parent = Health
+UISTROKE3.Color = Color3.new(0,0,0)
+UISTROKE3.Thickness = 1
+BOXUI.Name = "BOXUI"
+BOXUI.Parent = ESPGUI
+BOXUI.AnchorPoint = Vector2.new(0.5,0.5)
+BOXUI.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+BOXUI.BackgroundTransparency = 1.000
+BOXUI.BorderColor3 = Color3.fromRGB(0, 0, 0)
+BOXUI.BorderSizePixel = 0
+BOXUI.Position = UDim2.new(0.5, 0, 0.5, 0)
+BOXUI.Size = UDim2.new(0.45, 0, 0.6, 0)
+BOXUI.Visible = false
+UISTROKE4.Parent = BOXUI
+UISTROKE4.Color = Color3.new(0,0,0)
+UISTROKE4.Thickness = 1
 
 local Camera = workspace.CurrentCamera
 local Mouse = Player:GetMouse()
@@ -28,6 +115,7 @@ local Tabs = {
 }
 
 local CamlockGroupBox = Tabs.Main:AddLeftGroupbox('cam lock')
+local ESPGroupBox = Tabs.Main:AddRightGroupbox('esp')
 local SettingsGroupBox = Tabs.Main:AddRightGroupbox('settings')
 
 local function updateCharacter()
@@ -38,6 +126,78 @@ end
 
 Player.CharacterAdded:Connect(updateCharacter)
 updateCharacter()
+
+local espConnections = {}
+local function createESP(target)
+	local existingESP = ESPFOLDER:FindFirstChild(target.Name)
+	if existingESP then
+		existingESP:Destroy()
+	end
+	local ESPGUICLONE = game.Lighting:FindFirstChild("ESPGUI"):Clone()
+	if ESPGUICLONE then
+		ESPGUICLONE.Parent = ESPFOLDER
+		ESPGUICLONE.Name = target.Name
+		ESPGUICLONE.PLAYERNAME.Text = target.Name
+		ESPGUICLONE.DISPLAYNAME.Text = target.DisplayName
+		if Options.ESPDisplayType.Value == 'username' then
+			ESPGUICLONE.PLAYERNAME.Visible = true
+			ESPGUICLONE.DISPLAYNAME.Visible = false
+		else
+			ESPGUICLONE.PLAYERNAME.Visible = false
+			ESPGUICLONE.DISPLAYNAME.Visible = true
+		end
+		ESPGUICLONE.BOXUI.Visible = Toggles.ESPBox.Value
+		ESPGUICLONE.Health.Visible = Toggles.ESPHealthBar.Value
+		ESPGUICLONE.Health.BackgroundColor3 = Options.HealthBarColor.Value
+		ESPGUICLONE.BOXUI.UIStroke.Color = Options.BoxColor.Value
+		ESPGUICLONE.Enabled = true
+		local function updateESP(character)
+			local hrp = character:WaitForChild("UpperTorso", 6)
+			local humanoid = character:WaitForChild("Humanoid",6)
+			if hrp then
+				ESPGUICLONE.Adornee = hrp
+				if humanoid then
+					local function UpdateHealth()
+						local HealthPercent = humanoid.Health / math.max(humanoid.MaxHealth, 1)
+						local newSizeY = HealthPercent * 0.6
+						if ESPGUICLONE:FindFirstChild("Health") then
+							local newSize = UDim2.new(ESPGUICLONE.Health.Size.X.Scale, 3, newSizeY, 4)
+							local newPosition = UDim2.new(ESPGUICLONE.Health.Position.X.Scale, 5, 0.805, 0)
+
+							ESPGUICLONE.Health:TweenSizeAndPosition(newSize, newPosition, Enum.EasingDirection.Out, Enum.EasingStyle.Linear, 0.15, true)
+						end
+					end
+					humanoid.HealthChanged:Connect(UpdateHealth)
+					UpdateHealth()
+				end
+			end
+		end
+		local charAddedConn = target.CharacterAdded:Connect(updateESP)
+		espConnections[target] = charAddedConn
+		if target.Character then
+			updateESP(target.Character)
+		end
+	end
+end
+
+local function updateESPVisuals()
+	for _, ESPUI in ipairs(ESPFOLDER:GetChildren()) do
+		if ESPUI:IsA("BillboardGui") then
+			if Options.ESPDisplayType.Value == 'username' then
+				ESPUI.PLAYERNAME.Visible = true
+				ESPUI.DISPLAYNAME.Visible = false
+			else
+				ESPUI.PLAYERNAME.Visible = false
+				ESPUI.DISPLAYNAME.Visible = true
+			end
+			ESPUI.BOXUI.Visible = Toggles.ESPBox.Value
+			ESPUI.Health.Visible = Toggles.ESPHealthBar.Value
+			ESPUI.AlwaysOnTop = Toggles.ESPAlwaysOnTop.Value
+			ESPUI.Health.BackgroundColor3 = Options.HealthBarColor.Value
+			ESPUI.BOXUI.UIStroke.Color = Options.BoxColor.Value
+		end
+	end
+end
 
 local function checkFriend(targetPlayer,friendCheck)
 	if friendCheck then
@@ -145,6 +305,72 @@ CamlockGroupBox:AddSlider('CircleRadius',{
 	Max = 500;
 	Rounding = 2;
 	Compact = false;
+})
+
+VisualsGroupBox:AddToggle('ESP',{
+	Text = 'esp';
+	Default = false;
+
+	Callback = function(Value)
+		if Toggles.ESP.Value then
+			for _, plr in ipairs(Players:GetPlayers()) do
+				if plr ~= Player then
+					createESP(plr)
+				end
+			end
+		else
+			for _, OLDESP in ipairs(ESPFOLDER:GetChildren()) do
+				if OLDESP:IsA("BillboardGui") then
+					OLDESP:Destroy()
+				end
+			end
+			espConnections = {}
+		end
+	end,
+})
+
+ESPGroupBox:AddToggle('ESPAlwaysOnTop',{
+	Text = 'always on top';
+	Default = true;
+	Callback = function()
+		updateESPVisuals()
+	end,
+})
+
+ESPGroupBox:AddToggle('ESPBox',{
+	Text = 'box';
+	Default = true;
+	Callback = function()
+		updateESPVisuals()
+	end,
+}):AddColorPicker('BoxColor', {
+	Default = Color3.new(0, 0, 0),
+	Callback = function(Value)
+		updateESPVisuals()
+	end
+})
+
+ESPGroupBox:AddDropdown('ESPDisplayType',{
+	Values = {'username','displayname'};
+	Default = 1;
+	Multi = false;
+	Text = 'display type';
+	Callback = function(Value)
+		updateESPVisuals()
+	end,
+})
+
+ESPGroupBox:AddToggle('ESPHealthBar',{
+	Text = 'show health';
+	Default = true;
+	Callback = function()
+		updateESPVisuals()
+	end,
+}):AddColorPicker('HealthBarColor', {
+	Default = Color3.new(0, 0.780392, 0.180392),
+	Callback = function(Value)
+		updateESPVisuals()
+	end
 })
 
 local lastCheckedTarget = nil
