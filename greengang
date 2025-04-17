@@ -307,7 +307,7 @@ CamlockGroupBox:AddSlider('CircleRadius',{
 	Compact = false;
 })
 
-VisualsGroupBox:AddToggle('ESP',{
+ESPGroupBox:AddToggle('ESP',{
 	Text = 'esp';
 	Default = false;
 
