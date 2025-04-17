@@ -1,0 +1,178 @@
+local Players = game:GetService("Players")
+
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+local Humanoid = Character:WaitForChild("Humanoid")
+
+local Camera = workspace.CurrentCamera
+local Mouse = Player:GetMouse()
+
+local repo = 'https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/'
+
+local Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/havoceternal/uilib/refs/heads/main/uilib'))()
+local ThemeManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/havoceternal/uilibthememanagerlol/refs/heads/main/theme'))()
+local SaveManager = loadstring(game:HttpGet(repo .. 'addons/SaveManager.lua'))()
+
+local Window = Library:CreateWindow({
+	Title = 'block spin niggers';
+	Center = true;
+	AutoShow = true;
+	TabPadding = 8;
+	MenuFadeTime = 0;
+})
+
+local Tabs = {
+	Main = Window:AddTab("main");
+}
+
+local CamlockGroupBox = Tabs.Main:AddLeftGroupbox('cam lock')
+local SettingsGroupBox = Tabs.Main:AddRightGroupbox('settings')
+
+local function updateCharacter()
+	Character = Player.Character or Player.CharacterAdded:Wait()
+	HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+	Humanoid = Character:WaitForChild("Humanoid")
+end
+
+Player.CharacterAdded:Connect(updateCharacter)
+updateCharacter()
+
+local function checkFriend(targetPlayer,friendCheck)
+	if friendCheck then
+		return Player:IsFriendsWith(targetPlayer.UserId)
+	else
+		return false
+	end
+end
+
+local function GetClosestPlayerToMouse(wallcheck,downCheck)
+	local closestPlayer = nil
+	local shortestDistance = math.huge
+	local mousePos = Vector2.new(Mouse.X, Mouse.Y)
+	local rayParams = RaycastParams.new()
+	rayParams.FilterDescendantsInstances = {Player.Character}
+	rayParams.FilterType = Enum.RaycastFilterType.Blacklist
+	for _, otherPlayer in ipairs(Players:GetPlayers()) do
+		if otherPlayer ~= Player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then
+			local Head = otherPlayer.Character:FindFirstChild("Head")
+			if Head then
+				local worldPos = otherPlayer.Character.HumanoidRootPart.Position
+				local screenPos, onScreen = Camera:WorldToViewportPoint(worldPos)
+
+				if onScreen then
+					local screenVector = Vector2.new(screenPos.X, screenPos.Y)
+					local distance = (screenVector - mousePos).Magnitude
+					if wallcheck then
+						local origin = Camera.CFrame.Position
+						local direction = Head.Position - origin
+						local result = workspace:Raycast(origin, direction, rayParams)
+
+						if not result or result.Instance:IsDescendantOf(otherPlayer.Character) then
+							if distance < shortestDistance then
+								shortestDistance = distance
+								closestPlayer = otherPlayer
+							end
+						end
+					else
+						if distance < shortestDistance then
+							shortestDistance = distance
+							closestPlayer = otherPlayer
+						end
+					end
+				end
+			end
+		end
+	end
+	return closestPlayer
+end
+
+CamlockGroupBox:AddToggle('Aimlock',{
+	Text = 'aimlock';
+	Default = false;
+}):AddKeyPicker('AimlockKey',{
+	Default = 'C';
+	Mode = 'Hold';
+	Text = 'aimlock';
+	NoUI = false;
+})
+
+CamlockGroupBox:AddToggle('AimlockFriendCheck',{
+	Text = 'friend check';
+	Default = true;
+})
+
+CamlockGroupBox:AddToggle('AimlockWallCheck',{
+	Text = 'wall check';
+	Default = true;
+})
+
+CamlockGroupBox:AddDropdown('AimlockToggleType',{
+	Values = {'Toggle','Hold'};
+	Default = 2;
+	Multi = false;
+	Text = 'toggle type';
+	Callback = function(Value)
+		Options.AimlockKey.Mode = tostring(Value)
+	end,
+})
+
+CamlockGroupBox:AddDropdown('AimlockAimPart',{
+	Values = {'Head','HumanoidRootPart','LowerTorso','UpperTorso'};
+	Default = 1;
+	Multi = false;
+	Text = 'aimpart';
+})
+
+local lastCheckedTarget = nil
+local isLastTargetFriend = false
+local isLastTargetCrewValid = false
+local AimlockAimTarget = nil
+task.spawn(function()
+	while task.wait() do
+		local state = Options.AimlockKey:GetState()
+		if state then
+			if not AimlockAimTarget or not AimlockAimTarget.Character or not AimlockAimTarget.Character:FindFirstChild("Head") then
+				AimlockAimTarget = GetClosestPlayerToMouse(Toggles.AimlockWallCheck.Value)
+				lastCheckedTarget = nil
+			end
+			if AimlockAimTarget and AimlockAimTarget.Character then
+				if AimlockAimTarget ~= lastCheckedTarget then
+					lastCheckedTarget = AimlockAimTarget
+					isLastTargetFriend = not (Toggles.AimlockFriendCheck.Value and checkFriend(AimlockAimTarget, Toggles.AimlockFriendCheck.Value))
+				end
+				if not (isLastTargetFriend) then
+					AimlockAimTarget = GetClosestPlayerToMouse(Toggles.AimlockWallCheck.Value)
+					lastCheckedTarget = nil
+				elseif AimlockAimTarget and AimlockAimTarget.Character then
+					local aimPart = AimlockAimTarget.Character:FindFirstChild(Options.AimlockAimPart.Value)
+					if aimPart then
+						Camera.CFrame = CFrame.new(Camera.CFrame.Position, aimPart.Position)
+					end
+				end
+			end
+		else
+			AimlockAimTarget = nil
+		end
+	end
+end)
+SettingsGroupBox:AddLabel('menu toggle'):AddKeyPicker('MenuKeybind',{
+	Default = "RightControl",
+	NoUI = true,
+	Text = 'menu keybind'
+})
+
+Library.KeybindFrame.Visible = true;
+
+Library.ToggleKeybind = Options.MenuKeybind
+
+SaveManager:SetLibrary(Library)
+ThemeManager:SetLibrary(Library)
+
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({ 'MenuKeybind' })
+
+SaveManager:BuildConfigSection(Tabs.Main)
+SaveManager:LoadAutoloadConfig()
+
+ThemeManager:ApplyTheme("Havoc")
