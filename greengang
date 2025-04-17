@@ -1,4 +1,5 @@
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 
 local Player = Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
@@ -46,10 +47,23 @@ local function checkFriend(targetPlayer,friendCheck)
 	end
 end
 
-local function GetClosestPlayerToMouse(wallcheck,downCheck)
+local circle = Drawing.new("Circle")
+circle.Visible = true
+circle.Color = Color3.new(0, 0, 0)
+circle.Thickness = 2
+circle.Transparency = 1
+circle.Filled = false
+game:GetService("RunService").RenderStepped:Connect(function()
+	local mouseLocation = UserInputService:GetMouseLocation()
+	local correctedPos = Vector2.new(mouseLocation.X, mouseLocation.Y)
+	circle.Position = correctedPos
+	circle.Radius = Options.CircleRadius.Value
+end)
+local function GetClosestPlayerToMouse(wallcheck)
 	local closestPlayer = nil
 	local shortestDistance = math.huge
-	local mousePos = Vector2.new(Mouse.X, Mouse.Y)
+	local mouseLocation = UserInputService:GetMouseLocation()
+	local mousePos = Vector2.new(mouseLocation.X, mouseLocation.Y)
 	local rayParams = RaycastParams.new()
 	rayParams.FilterDescendantsInstances = {Player.Character}
 	rayParams.FilterType = Enum.RaycastFilterType.Blacklist
@@ -59,25 +73,25 @@ local function GetClosestPlayerToMouse(wallcheck,downCheck)
 			if Head then
 				local worldPos = otherPlayer.Character.HumanoidRootPart.Position
 				local screenPos, onScreen = Camera:WorldToViewportPoint(worldPos)
-
 				if onScreen then
 					local screenVector = Vector2.new(screenPos.X, screenPos.Y)
 					local distance = (screenVector - mousePos).Magnitude
-					if wallcheck then
-						local origin = Camera.CFrame.Position
-						local direction = Head.Position - origin
-						local result = workspace:Raycast(origin, direction, rayParams)
-
-						if not result or result.Instance:IsDescendantOf(otherPlayer.Character) then
+					if distance <= Options.CircleRadius.Value then
+						if wallcheck then
+							local origin = Camera.CFrame.Position
+							local direction = Head.Position - origin
+							local result = workspace:Raycast(origin, direction, rayParams)
+							if not result or result.Instance:IsDescendantOf(otherPlayer.Character) then
+								if distance < shortestDistance then
+									shortestDistance = distance
+									closestPlayer = otherPlayer
+								end
+							end
+						else
 							if distance < shortestDistance then
 								shortestDistance = distance
 								closestPlayer = otherPlayer
 							end
-						end
-					else
-						if distance < shortestDistance then
-							shortestDistance = distance
-							closestPlayer = otherPlayer
 						end
 					end
 				end
@@ -122,6 +136,15 @@ CamlockGroupBox:AddDropdown('AimlockAimPart',{
 	Default = 1;
 	Multi = false;
 	Text = 'aimpart';
+})
+
+CamlockGroupBox:AddSlider('CircleRadius',{
+	Text = 'radius';
+	Default = 150;
+	Min = 50;
+	Max = 500;
+	Rounding = 2;
+	Compact = false;
 })
 
 local lastCheckedTarget = nil
