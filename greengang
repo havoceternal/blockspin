@@ -208,7 +208,6 @@ local function checkFriend(targetPlayer,friendCheck)
 end
 
 local circle = Drawing.new("Circle")
-circle.Visible = true
 circle.Color = Color3.new(0, 0, 0)
 circle.Thickness = 2
 circle.Transparency = 1
@@ -218,6 +217,11 @@ game:GetService("RunService").RenderStepped:Connect(function()
 	local correctedPos = Vector2.new(mouseLocation.X, mouseLocation.Y)
 	circle.Position = correctedPos
 	circle.Radius = Options.CircleRadius.Value
+	if Toggles.ShowRadius.Value then
+		circle.Visible = true
+	else
+		circle.Visible = false
+	end
 end)
 local function GetClosestPlayerToMouse(wallcheck)
 	local closestPlayer = nil
@@ -296,6 +300,11 @@ CamlockGroupBox:AddDropdown('AimlockAimPart',{
 	Default = 1;
 	Multi = false;
 	Text = 'aimpart';
+})
+
+CamlockGroupBox:AddToggle('ShowRadius',{
+	Text = 'show radis';
+	Default = true;
 })
 
 CamlockGroupBox:AddSlider('CircleRadius',{
