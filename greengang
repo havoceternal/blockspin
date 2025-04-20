@@ -414,6 +414,24 @@ task.spawn(function()
 		end
 	end
 end)
+
+Players.PlayerAdded:Connect(function(newPlayer)
+	if Toggles.ESP.Value then
+		createESP(newPlayer)
+	end
+end)
+
+Players.PlayerRemoving:Connect(function(oldPlayer)
+	if espConnections[oldPlayer] then
+		espConnections[oldPlayer]:Disconnect()
+		espConnections[oldPlayer] = nil
+	end
+	local OLDESPGUI = ESPFOLDER:FindFirstChild(oldPlayer.Name)
+	if OLDESPGUI then
+		OLDESPGUI:Destroy()
+	end
+end)
+
 SettingsGroupBox:AddLabel('menu toggle'):AddKeyPicker('MenuKeybind',{
 	Default = "RightControl",
 	NoUI = true,
